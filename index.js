@@ -1,66 +1,70 @@
-import express from 'express'; // Runs server
-import axios from 'axios'; // used for API calls
+import express from "express";
+import bodyParser from "body-parser";
 
 const app = express();
 const port = 3000;
 
+// variable to store blogs
+let blogs = [];
+
 // get it so the static objects can use css
 app.use(express.static("public"));
 
-// used to get the view and data to send correctly
-app.use(express.urlencoded({ extended: true }));
+// parse incoming data 
+app.use(bodyParser.urlencoded({ extended: true }));
 
-// help to get ejs to view correctly with the CSS
-app.set('view engine', 'ejs');
-
-// render the main page of the website
+// renders the main home page 
 app.get("/", (req, res) => {
-    res.render("index", {city: null, weather: null, error: null});
+    res.render("index.ejs", {
+        blogs: blogs
+    })
 });
 
-// use async so we can use the await call for axios
-app.post("/", async (req, res) => {
-    const city = req.body.city;
-    const unit = req.body.unit;
-    const apiKey = "d3109b4af2a15a8743efc2672e2fa8d1";
-
-    // try to get the data from the api
-    try{
-        // get the lat and long of the city inputed 
-        const geoUrl = `http://api.openweathermap.org/geo/1.0/direct?q=${city}&limit=1&appid=${apiKey}`;
-        const geoResponse = await axios.get(geoUrl);
-
-        // Check if geoResponse.data has any results
-        if (!geoResponse.data || geoResponse.data.length === 0) {
-            return res.render("index", { city: null, weather: null, error: "Could not find location. Please try another city." });
-        }
-        
-        const lat = geoResponse.data[0].lat;
-        const lon = geoResponse.data[0].lon;
-    
-        // use above lat and lon to get data for city
-        const weatherUrl = `https://api.openweathermap.org/data/2.5/weather?lat=${lat}&lon=${lon}&appid=${apiKey}&units=${unit}`;
-        const response = await axios.get(weatherUrl);
-        const data = response.data;
-
-        // format weather data
-        const weather = {
-            temp: data.main.temp,
-            condition: data.weather[0].description,
-            unit: unit,
-        };
-        // render website with the new data
-        res.render("index", {city, weather, error: null});
-    } catch(err) {
-        // console log any errors
-        console.error(err);
-
-        // rerender blank site
-        res.render("index", {city: null, weather: null,  error: "Could not retrieve weather data. Please try again."});
-    }
+// renders the home page after updating blogs with the new blog data
+// uses .toLocaleString() to help make data format look better 
+app.post("/submit", (req, res) => {
+    const blog = {
+        author: req.body.author,
+        blog_title: req.body.blog_title,
+        blog: req.body.blog,
+        date: new Date().toLocaleString()
+    };
+    blogs.push(blog)
+    res.redirect("/");
 });
 
-// Start the server
+// Deletes the blog at index returned and fills gap wih function (splice)
+app.post("/delete", (req, res) => {
+    const blogIndex = req.body.index;
+    blogs.splice(blogIndex, 1);
+    res.redirect("/")
+});
+
+// grab the data at index in blogs to load into the for on edit.ejs and render
+app.get("/edit/:index", (req, res) => {
+    const blogIndex = req.params.index;
+    const blog = blogs[blogIndex];
+    res.render("edit.ejs", {
+        blog: blog,
+        index: blogIndex
+    })
+});
+
+// update the data at index with form data from edit.ejs return to home page
+// uses .toLocaleString() to help make data format look better 
+app.post("/update/:index", (req,res) => {
+    const blogIndex = req.params.index;
+    blogs[blogIndex] = {
+        author: req.body.author,
+        blog_title: req.body.blog_title,
+        blog: req.body.blog,
+        date: new Date().toLocaleString() 
+    };
+    res.redirect("/");
+});
+
+// make web app run on ${port}
 app.listen(port, () => {
-    console.log(`Listening on Port: ${port}`);
+    console.log(`Server running on port ${port}.`)
 });
+
