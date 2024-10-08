@@ -30,10 +30,15 @@ app.use(bodyParser.urlencoded({ extended: true }));
 
 // renders the main home page 
 app.get("/", async(req, res) => {
-    const result = await db.query('SELECT * FROM blogs ORDER BY date_created DESC');
-    res.render("index.ejs", {
-        blogs: result.rows
-    });
+    if(currentUser === null)
+    {
+        res.render("signup", { error: null });
+    } else {
+        const result = await db.query('SELECT * FROM blogs ORDER BY date_created DESC');
+        res.render("index.ejs", {
+            blogs: result.rows
+        });
+    }   
 });
 
 // Renders the signup page
