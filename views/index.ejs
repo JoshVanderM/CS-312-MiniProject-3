@@ -1,0 +1,34 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Wether By City</title>
+    <link rel="stylesheet" href="/css/styles.css">
+</head>
+<body>
+    <h1>Weather By City</h1>
+    <form action="/" method="POST">
+        <input type="text" name="city" placeholder="Enter city name">
+        <div>
+            <label>
+                <input type="radio" name="unit" value="imperial" checked> Fahrenheit (°F)
+            </label>
+            <label>
+                <input type="radio" name="unit" value="metric"> Celsius (°C)
+            </label>
+        </div>
+        <button type="submit">Get Weather</button>
+    </form>
+
+    <% if (error) { %>
+        <p class="error"><%= error %></p>
+    <% } %>
+
+    <% if (weather) { %>
+        <h2>Weather in <%= city %></h2>
+        <p>Temperature: <%= weather.temp %>°<%= weather.unit === 'metric' ? 'C' : 'F' %></p>
+        <p>Condition: <%= weather.condition %></p>
+    <% } %>
+</body>
+</html>
