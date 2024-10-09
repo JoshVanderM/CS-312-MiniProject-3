@@ -32,7 +32,7 @@ app.use(bodyParser.urlencoded({ extended: true }));
 app.get("/", async(req, res) => {
     if(currentUser === null)
     {
-        res.render("signup", { error: null });
+        res.render("signin", { error: null });
     } 
     else 
     {
