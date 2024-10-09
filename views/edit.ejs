@@ -12,15 +12,12 @@
 
         <section class="edit-blog">
             <! -- this is a form to update the blog data ->
-            <form action = "/update/<%= index %>" method="POST">
-                <label for="Author">Author</label>
-                <input type="text" name="author" value="<%= blog.author %>" required>
-
+            <form action = "/update/<%= blog.blog_id %>" method="POST">
                 <label for="Blog Title">Blog Title</label>
-                <input type="text" name="blog_title" value="<%= blog.blog_title %>" required>
+                <input type="text" name="blog_title" value="<%= blog.title %>" required>
 
                 <label for="Blog">Blog</label>
-                <input type="text" name="blog" value="<%= blog.blog %>" required>
+                <input type="text" name="blog" value="<%= blog.body %>" required>
 
                 <button type="submit">Update Blog</button>
             </form>

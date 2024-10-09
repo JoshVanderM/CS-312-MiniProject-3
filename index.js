@@ -33,10 +33,13 @@ app.get("/", async(req, res) => {
     if(currentUser === null)
     {
         res.render("signup", { error: null });
-    } else {
+    } 
+    else 
+    {
         const result = await db.query('SELECT * FROM blogs ORDER BY date_created DESC');
         res.render("index.ejs", {
-            blogs: result.rows
+            blogs: result.rows,
+            currentUser: currentUser
         });
     }   
 });
@@ -120,32 +123,56 @@ app.post("/submit", async (req, res) => {
 });
 
 // Deletes the blog at index returned and fills gap wih function (splice)
-app.post("/delete", (req, res) => {
-    const blogIndex = req.body.index;
-    blogs.splice(blogIndex, 1);
+app.post("/delete", async (req, res) => {
+    // get blog ID
+    const blogId = req.body.blog_id;
+
+    // fetch user data for author of blog
+    const result = await db.query('SELECT * FROM blogs WHERE blog_id = $1', [blogId]);
+
+    // check to make sure user is authorized to delete
+    if (result.rows[0].creator_user_id === currentUser.id) {
+        await db.query('DELETE FROM blogs WHERE blog_id = $1', [blogId]);
+    }
+
+    // Redirect to reload blogs
     res.redirect("/")
 });
 
 // grab the data at index in blogs to load into the for on edit.ejs and render
-app.get("/edit/:index", (req, res) => {
-    const blogIndex = req.params.index;
-    const blog = blogs[blogIndex];
-    res.render("edit.ejs", {
-        blog: blog,
-        index: blogIndex
-    })
+app.get("/edit/:blogId", async (req, res) => {
+    const blogId = req.params.blogId;
+
+    // get data from database for blog id given
+    const result = await db.query('SELECT * FROM blogs WHERE blog_id = $1', [blogId]);
+
+    // save all data into blog variable to be passed to edit page 
+    const blog = result.rows[0];
+
+    if (blog.creator_user_id === currentUser.id) {
+         // Redirect to Edit if the user is authorized
+        res.render("edit.ejs", { blog: blog, blogId: blogId });
+    } 
+    else {
+         // Redirect to homepage if the user is not authorized
+        res.redirect("/"); 
+    }
 });
 
-// update the data at index with form data from edit.ejs return to home page
-// uses .toLocaleString() to help make data format look better 
-app.post("/update/:index", (req,res) => {
-    const blogIndex = req.params.index;
-    blogs[blogIndex] = {
-        author: req.body.author,
-        blog_title: req.body.blog_title,
-        blog: req.body.blog,
-        date: new Date().toLocaleString() 
-    };
+// update the data at index with form data from edit.ejs return to home page 
+app.post("/update/:blogId", async (req,res) => {
+    const blogId = req.params.blogId;
+    const {blog_title, blog } = req.body;
+
+    const result = await db.query('SELECT * FROM blogs WHERE blog_id = $1', [blogId]);
+
+    // if user is allowed to edit update blog post 
+    if (result.rows[0].creator_user_id === currentUser.id) {
+        // UPDATE blog post 
+        await db.query('UPDATE blogs SET title = $1, body = $2, date_created = $3 WHERE blog_id = $4', [String(blog_title), String(blog), new Date().toLocaleString(), blogId]);
+    }
+
+    // redirect to the homepage
     res.redirect("/");
 });
 

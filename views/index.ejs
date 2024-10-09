@@ -25,7 +25,6 @@
         </section>
         
         <section class="blogs-list">
-            <h2>BLOGS</h2>
             <ul>
                 <! -- Loop through the blogs and print in order ->
                 <% blogs.forEach(function(blog) { %>
@@ -33,17 +32,22 @@
                         <h3><%= blog.title %></h3>
                         <p>By: <%= blog.creator_name %> Date: <%= new Date(blog.date_created).toLocaleString() %></p>
                         <p><%= blog.body %></p> <br>
-                        
-                        <! -- Buttons to Delete and Edit the blog ->
-                        <div class="blog-buttons">
-                            <form action="/delete" method="POST">
-                                <button type="submit">Delete</button>
-                            </form>
-                            <! -- return the index so we know which blog to edit ->
-                            <a href="/edit">
-                                <button type="button">Edit</button>
-                            </a>
-                        </div>
+
+                        <! -- only display the buttons to author of post ->
+                        <% if (blog.creator_user_id === currentUser.id) { %>
+                            <! -- Buttons to Delete and Edit the blog ->
+                            <div class="blog-buttons">
+                                <form action="/delete" method="POST">
+                                    <! -- return the blog_id so we know which blog to delete ->
+                                    <input type="hidden" name="blog_id" value="<%= blog.blog_id %>">
+                                    <button type="submit">Delete</button>
+                                </form>
+                                <! -- return the blog_id so we know which blog to edit ->
+                                <a href="/edit/<%= blog.blog_id %>">
+                                    <button type="button">Edit</button>
+                                </a>
+                            </div>
+                        <% } %>
                     </li>
                 <% }); %>
             </ul>
