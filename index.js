@@ -114,8 +114,7 @@ app.post("/submit", async (req, res) => {
     console.log(blog);
 
     // Using new Date() to get the current timestamp
-    await db.query(
-        'INSERT INTO blogs (creator_name, creator_user_id, title, body, date_created) VALUES ($1, $2, $3, $4, $5)',
+    await db.query('INSERT INTO blogs (creator_name, creator_user_id, title, body, date_created) VALUES ($1, $2, $3, $4, $5)',
         [blog.creator_name, blog.creator_user_id, blog.title, blog.body, blog.date]
     );
 
@@ -169,7 +168,8 @@ app.post("/update/:blogId", async (req,res) => {
     // if user is allowed to edit update blog post 
     if (result.rows[0].creator_user_id === currentUser.id) {
         // UPDATE blog post 
-        await db.query('UPDATE blogs SET title = $1, body = $2, date_created = $3 WHERE blog_id = $4', [String(blog_title), String(blog), new Date().toLocaleString(), blogId]);
+        await db.query('UPDATE blogs SET title = $1, body = $2, date_created = $3 WHERE blog_id = $4', 
+            [String(blog_title), String(blog), new Date().toLocaleString(), blogId]);
     }
 
     // redirect to the homepage
